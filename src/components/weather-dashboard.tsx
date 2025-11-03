@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { useEffect, useRef } from "react";
 import { CloudSun, Search } from "lucide-react";
 
@@ -54,7 +55,7 @@ function WeatherResults({ data }: { data: WeatherData | null | undefined }) {
 
 
 export function WeatherDashboard() {
-  const [state, formAction] = useFormState(getWeather, initialState);
+  const [state, formAction] = useActionState(getWeather, initialState);
   const { toast } = useToast();
   const initialLoadRef = useRef(true);
 

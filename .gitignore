@@ -43,3 +43,27 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+firebase-credentials.json
+
+# Kotlin/Gradle
+.gradle/
+build/
+!gradle-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+bin/
+
+# Configuration files with secrets
+config.properties
+
+# Logs
+logs/
+*.log
