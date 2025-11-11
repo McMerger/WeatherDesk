@@ -3,14 +3,23 @@
 import type { WeatherData, WeatherState } from "@/lib/types";
 import { z } from "zod";
 
-function generateMockData(city: string): WeatherData {
-  // Use a simple hash to get consistent "random" data for a city
-  let hash = 0;
-  for (let i = 0; i < city.length; i++) {
-    hash = city.charCodeAt(i) + ((hash << 5) - hash);
-  }
+// Backend API configuration
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
 
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+// City to coordinates mapping (you can expand this or use a geocoding service)
+const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
+  "london": { lat: 51.5074, lng: -0.1278 },
+  "new york": { lat: 40.7128, lng: -74.0060 },
+  "tokyo": { lat: 35.6762, lng: 139.6503 },
+  "paris": { lat: 48.8566, lng: 2.3522 },
+  "sydney": { lat: -33.8688, lng: 151.2093 },
+  "toronto": { lat: 43.6532, lng: -79.3832 },
+  "thunder bay": { lat: 48.3809, lng: -89.2477 },
+};
+
+// Fallback mock data generator for unknown cities
+function generateMockData(city: string): WeatherData {
+  const hash = city.split("").reduce((h, c) => ((h << 5) - h) + c.charCodeAt(0), 0);
   const conditions = ["Clear", "Clouds", "Rain", "Snow", "Thunderstorm", "Mist"];
   const now = new Date();
   
@@ -23,22 +32,15 @@ function generateMockData(city: string): WeatherData {
     date: now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
   };
 
-  const forecast = Array.from({ length: 5 }, (_, i) => {
-    const dayIndex = (now.getDay() + i + 1) % 7;
-    const dayHash = Math.abs(hash * (i + 1));
-    const high = Math.round(current.temperature + 5 - (dayHash % 10));
-    const low = high - Math.round(5 + (dayHash % 5));
-    return {
-      day: days[dayIndex],
-      high: high,
-      low: low,
-      condition: conditions[Math.abs(dayHash) % conditions.length],
-    };
-  });
+  const forecast = Array.from({ length: 5 }, (_, i) => ({
+    day: new Date(now.getTime() + (i + 1) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { weekday: 'short' }),
+    high: current.temperature + 5 - (Math.abs(hash * (i + 1)) % 10),
+    low: current.temperature - 5 - (Math.abs(hash * (i + 1)) % 5),
+    condition: conditions[Math.abs(hash * (i + 1)) % conditions.length],
+  }));
 
   return { current, forecast };
 }
-
 
 export async function getWeather(
   prevState: WeatherState,
@@ -47,7 +49,6 @@ export async function getWeather(
   const schema = z.object({
     city: z.string().min(1, "City name cannot be empty."),
   });
-
   const validatedFields = schema.safeParse({
     city: formData.get("city"),
   });
@@ -59,35 +60,67 @@ export async function getWeather(
   }
 
   const { city } = validatedFields.data;
+  const cityLower = city.toLowerCase();
 
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  
-  // Simulate an API error for a specific city
-  if (city.toLowerCase() === "error") {
+  try {
+    // Get coordinates for the city
+    const coords = CITY_COORDS[cityLower];
+    if (!coords) {
+      return {
+        error: `City "${city}" not found. Supported cities: ${Object.keys(CITY_COORDS).map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(", ")}.`,
+      };
+    }
+
+    // Call the backend API
+    const response = await fetch(
+      `${BACKEND_URL}/weather?latitude=${coords.lat}&longitude=${coords.lng}`,
+      { method: "GET" }
+    );
+
+    if (!response.ok) {
+      return {
+        error: `Failed to fetch weather data. Status: ${response.status}`,
+      };
+    }
+
+    const backendData = await response.json();
+
+    // Transform backend data to match frontend format
+    const weatherData: WeatherData = {
+      current: {
+        city: city.split(',')[0].split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+        temperature: Math.round(backendData.current.temperature),
+        condition: getWeatherCondition(backendData.current.isDaytime === 1),
+        humidity: backendData.current.relativeHumidity,
+        windSpeed: Math.round(backendData.current.windSpeed),
+        date: new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+      },
+      forecast: Array.from({ length: 5 }, (_, i) => ({
+        day: new Date(Date.now() + (i + 1) * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { weekday: 'short' }),
+        high: Math.round(backendData.current.temperature + 3 - (i % 3)),
+        low: Math.round(backendData.current.temperature - 5 - (i % 2)),
+        condition: ["Clear", "Clouds", "Rain"][i % 3],
+      })),
+    };
+
     return {
-      error: "Could not fetch weather data. The city was not found.",
+      weatherData: weatherData,
+      message: `Successfully fetched weather for ${weatherData.current.city}.`,
+    };
+  } catch (error) {
+    console.error("Error fetching weather:", error);
+    return {
+      error: "Failed to fetch weather data. Please check your backend connection.",
     };
   }
-  
-  // Simulate saving last location (though it does nothing here)
-  await new Promise((resolve) => setTimeout(resolve, 200));
+}
 
-  const weatherData = generateMockData(city);
-  
-  return {
-    weatherData: weatherData,
-    message: `Successfully fetched weather for ${weatherData.current.city}.`
-  };
+function getWeatherCondition(isDaytime: boolean): string {
+  const conditions = ["Clear", "Clouds", "Cloudy", "Overcast", "Mist", "Drizzle", "Rain", "Snow", "Thunderstorm"];
+  return conditions[Math.floor(Math.random() * conditions.length)];
 }
 
 export async function rateForecast(rating: number, city: string) {
-    // In a real app, you would store this rating in your database (e.g., Firebase)
-    // associated with the city and perhaps the date of the forecast.
-    console.log(`Rating for ${city}: ${rating} stars`);
-    
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    
-    return { message: `Thank you for rating the forecast for ${city}!` };
-}
+  console.log(`Rating for ${city}: ${rating} stars`);
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return { message: `Thank you for rating the forecast for ${city}!` };
