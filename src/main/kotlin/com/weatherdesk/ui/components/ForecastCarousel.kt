@@ -29,6 +29,20 @@ class ForecastCarousel : StackPane() {
                     opacity = 0.8
                     isVisible = false
                 }
+
+            private val emptyLabel = Label("No forecast data available").apply {
+        font = Font.font("System", FontWeight.NORMAL, 16.0)
+        textFill = Color.LIGHTGRAY
+        opacity = 0.8
+        isVisible = false
+    }
+
+                private val errorLabel = Label("Error loading forecast data").apply {
+        font = Font.font("System", FontWeight.NORMAL, 16.0)
+        textFill = Color.rgb(255, 100, 100)  // Light red for error
+        opacity = 0.8
+        isVisible = false
+    }
     private var currentIndex = 0
         private var isLoading = false
         var onUserInteraction: (() -> Unit)? = null
@@ -44,6 +58,8 @@ class ForecastCarousel : StackPane() {
         cardsContainer.alignment = Pos.CENTER
         children.add(cardsContainer)
                 children.add(loadingLabel)
+                            children.add(emptyLabel)
+            children.add(errorLabel)
 
         setupGestureHandling()
     }
@@ -224,6 +240,36 @@ class ForecastCarousel : StackPane() {
                                                     loadingLabel.isVisible = false
                                                     cardsContainer.isVisible = true
                                                 }
+
+                                            /**
+     * Show empty state message
+     */
+    fun showEmptyState() {
+        emptyLabel.isVisible = true
+        errorLabel.isVisible = false
+        loadingLabel.isVisible = false
+        cardsContainer.isVisible = false
+    }
+
+    /**
+     * Show error state message
+     */
+    fun showErrorState() {
+        errorLabel.isVisible = true
+        emptyLabel.isVisible = false
+        loadingLabel.isVisible = false
+        cardsContainer.isVisible = false
+    }
+
+    /**
+     * Hide all state messages and show content
+     */
+    fun hideAllStates() {
+        emptyLabel.isVisible = false
+        errorLabel.isVisible = false
+        loadingLabel.isVisible = false
+        cardsContainer.isVisible = true
+    }
 
     /**
      * Individual forecast card with glassmorphism effect
