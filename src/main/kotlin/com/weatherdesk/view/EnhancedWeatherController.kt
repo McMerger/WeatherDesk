@@ -16,6 +16,8 @@ import javafx.scene.layout.*
 import javafx.scene.text.Font
 import mu.KotlinLogging
 import java.time.format.DateTimeFormatter
+import com.weatherdesk.ui.animations.UIAnimations
+import com.weatherdesk.ui.animations.EngagementManager
 
 private val logger = KotlinLogging.logger {}
 
@@ -68,6 +70,7 @@ class EnhancedWeatherController {
     private var particleSystem: WeatherParticleSystem? = null
     private var globe: InteractiveGlobe? = null
     private var forecastCarousel: ForecastCarousel? = null
+        private var engagementManager: EngagementManager? = null
 
     // State
     private var currentRating = 0
@@ -113,6 +116,22 @@ class EnhancedWeatherController {
             logger.info { "Initializing forecast carousel" }
             forecastCarousel = ForecastCarousel()
             forecastCarouselContainer.children.add(forecastCarousel)
+
+                        // Initialize engagement manager with content rotation
+            engagementManager = EngagementManager(
+                triviaLabel = triviaLabel,
+                quoteLabel = quoteLabel,
+                activityLabel = activityLabel,
+                forecastCarousel = forecastCarousel
+            )
+
+            // Apply entrance animations for premium feel
+            UIAnimations.fadeIn(weatherDataBox, 1000, 200)
+            UIAnimations.slideInFromTop(globeContainer, 800, 100)
+            UIAnimations.scaleUp(forecastCarouselContainer, 600, 300)
+            UIAnimations.fadeIn(triviaLabel, 800, 400)
+            UIAnimations.fadeIn(quoteLabel, 800, 500)
+            UIAnimations.fadeIn(activityLabel, 800, 600)
 
             logger.info { "Enhanced UI components initialized successfully" }
         } catch (e: Exception) {
@@ -295,6 +314,10 @@ class EnhancedWeatherController {
         // NEW: Update contextual content
         updateWeatherContent(weather)
 
+                // Start engagement features to keep users hooked
+        engagementManager?.startContentRotation()
+        engagementManager?.startCarouselAutoPlay()
+
         logger.info { "Weather display updated for ${weather.city}" }
     }
 
@@ -431,6 +454,7 @@ class EnhancedWeatherController {
         try {
             particleSystem?.dispose()
             globe?.dispose()
+                        engagementManager?.stopAll()
             logger.info { "Enhanced UI components cleaned up successfully" }
         } catch (e: Exception) {
             logger.error(e) { "Error during cleanup" }
