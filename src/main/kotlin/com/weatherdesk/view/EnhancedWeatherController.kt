@@ -315,15 +315,18 @@ class EnhancedWeatherController {
         updateWeatherContent(weather)
 
                 // Start engagement features to keep users hooked
-        engagementManager?.startContentRotation()
-        engagementManager?.startCarouselAutoPlay()
-
-        logger.info { "Weather display updated for ${weather.city}" }
-    }
-
-    /**
-     * Update theme based on weather condition and time of day
-     */
+                try {try {
+            if (engagementManager != null) {
+                engagementManager?.startContentRotation()
+                engagementManager?.startCarouselAutoPlay()
+                logger.info { "Engagement features started successfully" }
+            } else {
+                logger.warn("EngagementManager not initialized - content rotation disabled")
+            }
+        } catch (e: Exception) {
+            logger.error("Failed to start engagement features", e)
+            // Features will gracefully degrade - app remains functional
+        }
     private fun updateTheme(condition: WeatherCondition) {
         try {
             val timeOfDay = ThemeManager.getTimeOfDay()
