@@ -23,6 +23,7 @@ class InteractiveGlobe : StackPane() {
     private var rotationY = 0.0
     private var targetRotationX = 0.0
     private var targetRotationY = 0.0
+        private var isDirty = true  // Dirty flag for optimized rendering
 
     // Interaction
     private var isDragging = false
@@ -197,10 +198,12 @@ class InteractiveGlobe : StackPane() {
         // Smooth rotation interpolation
         rotationX += (targetRotationX - rotationX) * 5.0 * deltaTime
         rotationY += (targetRotationY - rotationY) * 5.0 * deltaTime
+                isDirty = true  // Mark for redraw since rotation changed
 
         // Auto-rotate when not dragging
         if (!isDragging) {
             targetRotationY += 0.1 * deltaTime
+                        isDirty = true  // Mark for redraw
         }
 
         // Update marker pulse animation
@@ -213,6 +216,7 @@ class InteractiveGlobe : StackPane() {
      * Render the globe
      */
     private fun render() {
+                if (!isDirty) return  // Skip render if nothing changed
         val width = canvas.width
         val height = canvas.height
         val centerX = width / 2
@@ -247,6 +251,7 @@ class InteractiveGlobe : StackPane() {
 
         // Draw glow effect
         drawGlowEffect(centerX, centerY, radius)
+                isDirty = false  // Mark as rendered
     }
 
     /**
