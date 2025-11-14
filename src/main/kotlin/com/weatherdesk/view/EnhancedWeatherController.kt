@@ -319,6 +319,11 @@ class EnhancedWeatherController {
             if (engagementManager != null) {
                 engagementManager?.startContentRotation()
                 engagementManager?.startCarouselAutoPlay()
+
+                                // Setup callback to stop auto-play on user interaction
+                                                forecastCarousel.onUserInteraction = {
+                                                                        engagementManager?.stopCarouselAutoPlay()
+                                                                                        }
                 logger.info { "Engagement features started successfully" }
             } else {
                 logger.warn("EngagementManager not initialized - content rotation disabled")
