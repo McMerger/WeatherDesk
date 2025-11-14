@@ -23,7 +23,14 @@ class ForecastCarousel : StackPane() {
 
     private val cardsContainer = HBox(20.0)
     private val cards = mutableListOf<ForecastCard>()
+        private val loadingLabel = Label("Loading forecast...").apply {
+                    font = Font.font("System", FontWeight.BOLD, 20.0)
+                            textFill = Color.WHITE
+                    opacity = 0.8
+                    isVisible = false
+                }
     private var currentIndex = 0
+        private var isLoading = false
 
     // Gesture tracking
     private var startX = 0.0
@@ -35,6 +42,7 @@ class ForecastCarousel : StackPane() {
 
         cardsContainer.alignment = Pos.CENTER
         children.add(cardsContainer)
+                children.add(loadingLabel)
 
         setupGestureHandling()
     }
@@ -43,6 +51,8 @@ class ForecastCarousel : StackPane() {
      * Set forecast data and create cards
      */
     fun setForecasts(forecasts: List<DailyForecast>, unit: TemperatureUnit) {
+                // Show loading indicator
+                showLoading()
         cards.clear()
         cardsContainer.children.clear()
 
@@ -58,6 +68,9 @@ class ForecastCarousel : StackPane() {
         if (cards.isNotEmpty()) {
             highlightCard(0)
         }
+
+                // Hide loading indicator
+                        hideLoading()
     }
 
     /**
@@ -189,6 +202,24 @@ class ForecastCarousel : StackPane() {
             }
         }
     }
+
+        /**
+             * Show loading indicator
+                  */
+                      private fun showLoading() {
+                                  isLoading = true
+                                  loadingLabel.isVisible = true
+                                  cardsContainer.isVisible = false
+                              }
+
+                          /**
+                               * Hide loading indicator
+                                    */
+                                        private fun hideLoading() {
+                                                    isLoading = false
+                                                    loadingLabel.isVisible = false
+                                                    cardsContainer.isVisible = true
+                                                }
 
     /**
      * Individual forecast card with glassmorphism effect
