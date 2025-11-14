@@ -31,6 +31,7 @@ class ForecastCarousel : StackPane() {
                 }
     private var currentIndex = 0
         private var isLoading = false
+        var onUserInteraction: (() -> Unit)? = null
 
     // Gesture tracking
     private var startX = 0.0
@@ -96,6 +97,7 @@ class ForecastCarousel : StackPane() {
         setOnMousePressed { event ->
             startX = event.x
             isDragging = true
+                        onUserInteraction?.invoke()
         }
 
         setOnMouseDragged { event ->
@@ -125,7 +127,9 @@ class ForecastCarousel : StackPane() {
         setOnKeyPressed { event ->
             when (event.code.toString()) {
                 "LEFT" -> showPrevious()
+                            onUserInteraction?.invoke()
                 "RIGHT" -> showNext()
+                            onUserInteraction?.invoke()
             }
         }
     }
