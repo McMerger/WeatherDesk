@@ -5,6 +5,7 @@ import com.weatherdesk.model.TemperatureUnit
 import com.weatherdesk.model.WeatherCondition
 import com.weatherdesk.ui.components.ForecastCarousel
 import com.weatherdesk.ui.components.InteractiveGlobe
+import com.weatherdesk.ui.components.ActivityRecommendationPanel
 import com.weatherdesk.ui.content.WeatherContent
 import com.weatherdesk.ui.effects.WeatherParticleSystem
 import com.weatherdesk.ui.theme.ThemeManager
@@ -63,6 +64,7 @@ class EnhancedWeatherController {
     @FXML private lateinit var quoteLabel: Label
     @FXML private lateinit var activityLabel: Label
 
+        @FXML private lateinit var activitiesRecommendationContainer: StackPane
     // ViewModel
     lateinit var viewModel: WeatherViewModel
 
@@ -73,6 +75,7 @@ class EnhancedWeatherController {
         private var engagementManager: EngagementManager? = null
 
     // State
+        private var activityPanel: ActivityRecommendationPanel? = null
     private var currentRating = 0
 
     @FXML
@@ -116,6 +119,11 @@ class EnhancedWeatherController {
             logger.info { "Initializing forecast carousel" }
             forecastCarousel = ForecastCarousel()
             forecastCarouselContainer.children.add(forecastCarousel)
+
+                    // Initialize activity recommendation panel (CORE FEATURE)
+        logger.info { "Initializing activity recommendation panel" }
+        activityPanel = ActivityRecommendationPanel()
+        activitiesRecommendationContainer.children.add(activityPanel)
 
                         // Initialize engagement manager with content rotation
             engagementManager = EngagementManager(
@@ -317,6 +325,14 @@ class EnhancedWeatherController {
                 // Start engagement features to keep users hooked
                 try {try {
             if (engagementManager != null) {
+
+                        // NEW: Update activity recommendations panel (CORE FEATURE)
+        try {
+            activityPanel?.updateWeather(weather.condition, weather.temperatureCelsius)
+            logger.info { "Activity panel updated with weather data" }
+        } catch (e: Exception) {
+            logger.error(e) { "Error updating activity panel" }
+        }
                 engagementManager?.startContentRotation()
                 engagementManager?.startCarouselAutoPlay()
 
@@ -462,6 +478,7 @@ class EnhancedWeatherController {
         try {
             particleSystem?.dispose()
             globe?.dispose()
+                        activityPanel?.dispose()
                         engagementManager?.stopAll()
             logger.info { "Enhanced UI components cleaned up successfully" }
         } catch (e: Exception) {
