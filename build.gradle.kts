@@ -27,10 +27,6 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:2.3.7")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
     implementation("io.ktor:ktor-serialization-gson:2.3.7")
-
-    // Firebase
-    implementation("com.google.firebase:firebase-admin:9.2.0")
-
     // JSON
     implementation("com.google.code.gson:gson:2.10.1")
 
