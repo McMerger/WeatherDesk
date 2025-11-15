@@ -39,55 +39,8 @@ class WeatherViewModel(private val repository: WeatherRepository) {
     val averageRating = SimpleDoubleProperty(0.0)
 
     init {
-        loadUserPreferences()
     }
 
-    /**
-     * Load user preferences from repository
-     */
-    private fun loadUserPreferences() {
-        scope.launch {
-            try {
-                val prefs = repository.getUserPreferences()
-                temperatureUnit.set(prefs.preferredTempUnit)
-                windSpeedUnit.set(prefs.preferredWindUnit)
-
-                // Load last searched location if available
-                if (prefs.lastSearchedCity != null) {
-                    if (prefs.lastSearchedLatitude != null && prefs.lastSearchedLongitude != null) {
-                        latitudeInput.set(prefs.lastSearchedLatitude.toString())
-                        longitudeInput.set(prefs.lastSearchedLongitude.toString())
-                        isCoordinateMode.set(true)
-                        fetchWeatherByCoordinates()
-                    } else {
-                        cityInput.set(prefs.lastSearchedCity)
-                        fetchWeatherByCity()
-                    }
-                }
-
-                logger.info { "User preferences loaded successfully" }
-            } catch (e: Exception) {
-                logger.error(e) { "Error loading user preferences" }
-            }
-        }
-    }
-
-    /**
-     * Save current preferences
-     */
-    private fun savePreferences() {
-        scope.launch {
-            try {
-                val prefs = UserPreferences(
-                    preferredTempUnit = temperatureUnit.get(),
-                    preferredWindUnit = windSpeedUnit.get()
-                )
-                repository.saveUserPreferences(prefs)
-            } catch (e: Exception) {
-                logger.error(e) { "Error saving preferences" }
-            }
-        }
-    }
 
     /**
      * Fetch weather by city name
@@ -167,58 +120,11 @@ class WeatherViewModel(private val repository: WeatherRepository) {
     }
 
     /**
-     * Submit rating for current forecast
-     */
-    fun submitRating() {
-        val rating = currentRating.get()
-        val city = currentWeather.get()?.city
-
-        if (rating == 0) {
-            updateError("Please select a rating")
-            return
-        }
-
-        if (city == null) {
-            updateError("No city selected")
-            return
-        }
-
-        scope.launch {
-            try {
-                repository.submitRating(city, rating)
-                updateSuccess("Thank you for rating the forecast for $city!")
-                currentRating.set(0)
-                loadAverageRating(city)
-            } catch (e: Exception) {
-                updateError("Failed to submit rating: ${e.message}")
-            }
-        }
-    }
-
-    /**
-     * Load average rating for a city
-     */
-    private fun loadAverageRating(city: String) {
-        scope.launch {
-            try {
-                val rating = repository.getAverageRating(city)
-                if (rating != null) {
-                    Platform.runLater {
-                        averageRating.set(rating)
-                    }
-                }
-            } catch (e: Exception) {
-                logger.error(e) { "Failed to load average rating" }
-            }
-        }
-    }
-
-    /**
      * Change temperature unit
      */
     fun setTemperatureUnit(unit: TemperatureUnit) {
         temperatureUnit.set(unit)
-        savePreferences()
+
     }
 
     /**
@@ -226,7 +132,7 @@ class WeatherViewModel(private val repository: WeatherRepository) {
      */
     fun setWindSpeedUnit(unit: WindSpeedUnit) {
         windSpeedUnit.set(unit)
-        savePreferences()
+
     }
 
     /**
@@ -272,12 +178,6 @@ class WeatherViewModel(private val repository: WeatherRepository) {
         successMessage.set("")
     }
 
-    /**
-     * Check if Firebase is available
-     */
-    fun isFirebaseAvailable(): Boolean {
-        return repository.isFirebaseAvailable()
-    }
 
     /**
      * Cleanup when ViewModel is destroyed
