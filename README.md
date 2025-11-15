@@ -1,5 +1,18 @@
-# Firebase Studio
+# WeatherDesk
 
-This is a NextJS starter in Firebase Studio.
+A desktop weather application built with Kotlin and JavaFX.
 
-To get started, take a look at src/app/page.tsx.
+## Features
+
+- Fetch weather data from OpenMeteo API
+- Display current weather and forecasts
+- Temperature and wind speed unit customization
+- City and coordinate-based weather lookup
+- Clean MVVM architecture
+
+## Technologies
+
+- Kotlin
+- JavaFX
+- OpenMeteo API
+- Gradle
