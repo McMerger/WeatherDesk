@@ -43,7 +43,7 @@ function WeatherResults({ data }: { data: WeatherData | null | undefined }) {
   }
 
   return (
-    <Card className="border-dashed">
+    <Card className="border-dashed glass-card">
       <CardContent className="p-10 flex flex-col items-center justify-center text-center text-muted-foreground h-96">
         <CloudSun className="w-16 h-16 mb-4 text-primary"/>
         <h3 className="text-lg font-semibold text-foreground">Welcome to WeatherDesk</h3>
@@ -95,7 +95,7 @@ export function WeatherDashboard() {
                   type="text"
                   name="city"
                   placeholder="E.g., London, New York, Tokyo"
-                  className="pl-10 text-base"
+                  className="pl-10 text-base glass-input"
                   required
                 />
               </div>
