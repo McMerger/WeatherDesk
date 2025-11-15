@@ -7,6 +7,7 @@ import javafx.application.Platform
 import javafx.scene.control.Label
 import java.util.Timer
 import java.util.TimerTask
+import com.weatherdesk.util.UIConstants
 
 /**
  * Manages engagement features like content rotation and auto-play
@@ -94,7 +95,7 @@ class EngagementManager(
                     }
                 }
             },
-            1000
+            UIConstants.CONTENT_ROTATION_INTERVAL_MS
         )
     }
     
@@ -115,11 +116,11 @@ class EngagementManager(
                     }
                 }
             },
-            5000, // First advance after 5 seconds
-            5000  // Then every 5 seconds
+            UIConstants.CAROUSEL_AUTO_PLAY_DELAY_MS, // First advance after 5 seconds
+            UIConstants.CAROUSEL_AUTO_PLAY_INTERVAL_MS  // Then every 5 seconds
         )
     }
-    
+UIConstants.CAROUSEL_AUTO_PLAY_DELAY_MS
     /**
      * Stop carousel auto-play (when user interacts)
      */
